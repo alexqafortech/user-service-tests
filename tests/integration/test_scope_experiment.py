@@ -1,9 +1,9 @@
 import pytest
-from user_service import UserService
 
 @pytest.fixture(scope="function")
 def user_service_shared(tmp_path):
     """ОПАСНЫЙ ПРИМЕР: session-scope для изменяемой фикстуры."""
+    from user_service import UserService
     storage = tmp_path / "users.json"
     storage.write_text("{}")
     return UserService(storage_path = storage)
