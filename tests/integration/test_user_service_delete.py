@@ -11,7 +11,7 @@ def test_delete_existing_user_removes_from_storage(user_service, registered_user
 @pytest.mark.storage
 def test_delete_existing_user_makes_get_return_none(user_service, registered_user):
     user_service.delete_user(registered_user["email"])
-    assert user_service.get_user(registered_user["email"]) == None
+    assert user_service.get_user(registered_user["email"]) is None
 
 @pytest.mark.regression
 @pytest.mark.storage

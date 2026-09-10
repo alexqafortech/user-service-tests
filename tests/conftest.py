@@ -8,14 +8,13 @@
 
 import sys
 from pathlib import Path
+import pytest
 
 
 
 # Добавляем src/ в sys.path
 SRC_DIR = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(SRC_DIR))
-
-import pytest
 
 @pytest.fixture
 def valid_credentials():
