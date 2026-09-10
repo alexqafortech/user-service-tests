@@ -10,7 +10,7 @@ def test_user_create_hashes_password():
 
 def test_user_create_hash_is_not_empty():
     user = User.create("a@b.io", "Password1")
-    assert len(user.password_hash) >0
+    assert len(user.password_hash) > 0
 
 def test_user_check_password_correct():
     user = User.create("a@b.io", "Password1")

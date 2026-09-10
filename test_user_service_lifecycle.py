@@ -41,7 +41,7 @@ def test_login_with_wrong_password_raises(user_service, registered_user):
     with pytest.raises(InvalidCredentialsError):
         user_service.login(email, "WrongPass1")
 
-def test_login_with_nonexistent_email_raises(user_service, registered_user):
+def test_login_with_nonexistent_email_raises(user_service):
     with pytest.raises(InvalidCredentialsError):
         user_service.login("ghost@example.com", "Password123")
 

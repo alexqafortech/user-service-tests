@@ -40,7 +40,7 @@ def test_password_invalid_too_short():
     assert is_valid_password("Abc123") is False
 
 def test_password_invalid_too_long():
-    assert  is_valid_password("A"*65) is False
+    assert is_valid_password("A"*65) is False
 
 def test_password_invalid_no_digit():
     assert is_valid_password("NoDigitsHere") is False
