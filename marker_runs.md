@@ -25,6 +25,20 @@ test_user_service_lifecycle.py::test_get_user_returns_none_for_unknown_email PAS
 
 ====================== 20 passed, 81 deselected in 0.07s =======================
 
+pytest -m "smoke or regression"
+...
+test_validators.py::test_is_valid_password[valid_standard] PASSED        [ 85%]
+test_validators.py::test_is_valid_password[valid_min_length_8] PASSED    [ 87%]
+test_validators.py::test_is_valid_password[valid_max_length_64] PASSED   [ 89%]
+test_validators.py::test_is_valid_password[invalid_too_short_7] PASSED   [ 91%]
+test_validators.py::test_is_valid_password[invalid_too_long_65] PASSED   [ 93%]
+test_validators.py::test_is_valid_password[invalid_no_digit] PASSED      [ 95%]
+test_validators.py::test_is_valid_password[invalid_no_uppercase] PASSED  [ 97%]
+test_validators.py::test_is_valid_password[invalid_no_lowercase] PASSED  [100%]
+
+================= 47 passed, 58 deselected, 1 xfailed in 0.14s =================
+
+
 pytest -m "smoke and auth"
 ...
 collected 101 items / 95 deselected / 6 selected                               

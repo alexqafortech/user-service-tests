@@ -37,5 +37,3 @@ import pytest
 )
 def test_just_too_no_errors(email, password):
     assert email == email and password == password
-
-#
