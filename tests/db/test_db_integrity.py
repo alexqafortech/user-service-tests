@@ -29,7 +29,6 @@ def test_delete_task_removes_from_db(authed_tasks_client, db):
     id_of_task = task_json["id"]
 
     authed_tasks_client.delete(id_of_task)
-
     assert db.get_task_by_id(id_of_task) is None
 
 @pytest.mark.db

@@ -26,12 +26,38 @@ def api_session():
 
 @pytest.fixture(scope='session', autouse=True)
 def check_api_available(config):
-    try:
-        response = requests.get(f"{config.BASE_URL}/health", timeout=10)
-        if response.status_code != 200:
-            pytest.exit(f"API вернул {response.status_code}")
-    except requests.exceptions.ConnectionError:
-        pytest.exit("API недоступен. Запусти: docker compose up -d")
+    url = f"{config.BASE_URL.rstrip('/')}/health"
+    attempts = 20
+
+    print(f"\nПроверяем доступность API: {url}")
+
+    for attempt in range(1, attempts + 1):
+        try:
+            response = requests.get(url, timeout=5)
+
+            if response.status_code == 200:
+                print(f"API доступен: {url}")
+                return
+
+            print(
+                f"Попытка {attempt}/{attempts}: "
+                f"HTTP {response.status_code}"
+            )
+
+        except requests.exceptions.RequestException as exc:
+            print(
+                f"Попытка {attempt}/{attempts}: "
+                f"{type(exc).__name__}: {exc}"
+            )
+
+        if attempt < attempts:
+            time.sleep(3)
+
+    pytest.exit(
+        f"API недоступен после {attempts} попыток. "
+        f"Проверенный URL: {url}",
+        returncode=2,
+    )
 
 @pytest.fixture(scope='function')
 def unique_user_data():
