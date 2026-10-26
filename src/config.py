@@ -6,7 +6,7 @@ load_dotenv()
 
 @dataclass
 class Config:
-    BASE_URL: str = os.getenv("BASE_URL", "http://localhost:5000")
+    BASE_URL: str = os.getenv("BASE_URL", "http://localhost:8000")
     API_TIMEOUT: int = int(os.getenv("API_TIMEOUT", "5"))
 
     DB_HOST: str = os.getenv("DB_HOST", "localhost")
