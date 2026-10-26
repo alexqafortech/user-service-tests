@@ -87,6 +87,7 @@ def category(api_session, config):
 
 @pytest.fixture(scope = "session")
 def user_token(auth_client, unique_user_data):
+    # Получение токена пользователя для дальнейшего использования  тестах
     unique_id = uuid.uuid4().hex[:8]
     user_data = {
         "email": f"session_{unique_id}@example.com",
