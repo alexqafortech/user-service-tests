@@ -1,20 +1,15 @@
-import os
-from pathlib import Path
-from dataclasses import dataclass
-from dotenv import load_dotenv
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(dotenv_path=BASE_DIR / ".env")
+class Config(BaseSettings):
+    BASE_URL: str
+    API_TIMEOUT: int = 5
 
-@dataclass
-class Config:
-    BASE_URL: str = os.getenv("BASE_URL")
-    API_TIMEOUT: int = int(os.getenv("API_TIMEOUT", "5"))
+    DB_HOST: str
+    DB_PORT: int
+    DB_NAME: str
+    DB_USER: str
+    DB_PASSWORD: str
 
-    DB_HOST: str = os.getenv("DB_HOST")
-    DB_PORT: int = int(os.getenv("DB_PORT"))
-    DB_NAME: str = os.getenv("DB_NAME")
-    DB_USER: str = os.getenv("DB_USER")
-    DB_PASSWORD: str = os.getenv("DB_PASSWORD")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 config = Config()
