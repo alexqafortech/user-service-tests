@@ -1,0 +1,47 @@
+name: API Tests
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Tests repo
+        uses: actions/checkout@v4
+        with:
+          path: tests-repo
+
+      - name: Checkout Task Management API
+        uses: actions/checkout@v4
+        with:
+          repository: balakleeva/task_management_api
+          path: task-api
+
+      - name: Start Task Management API
+        working-directory: task-api
+        run: |
+          cp .env.example .env
+          docker compose up --build -d
+
+      - name: Wait for API
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8000/health; then exit 0; fi
+            echo "API ещё не готов, ждём..."
+            sleep 3
+          done
+          echo "API так и не поднялся"
+          exit 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        working-directory: tests-repo
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        working-directory: tests-repo
+        run: pytest tests/api/ tests/db/ -v
+        
