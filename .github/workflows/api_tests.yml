@@ -67,6 +67,8 @@ jobs:
       - name: Create env for tests
         working-directory: tests-repo
         run: cp .env.example .env
+        env:
+          API_TIMEOUT: 5
 
       - name: Run tests
         working-directory: tests-repo
