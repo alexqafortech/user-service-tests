@@ -8,6 +8,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DB_PASSWORD: ${{secrets.DB_PASSWORD}}
+      APP_SECRET_KEY: ${{secrets.APP_SECRET_KEY}}
     steps:
       - name: Run info
         run: |
@@ -31,6 +34,8 @@ jobs:
         working-directory: task-api
         run: |
           cp .env.example .env
+          sed -i "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=$DB_PASSWORD|" .env
+          sed -i "s|^SECRET_KEY=.*|SECRET_KEY=$APP_SECRET_KEY|" .env
           docker compose up --build -d
 
       - name: Wait for API
