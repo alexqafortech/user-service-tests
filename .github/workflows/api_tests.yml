@@ -64,8 +64,9 @@ jobs:
         working-directory: tests-repo
         run: pip install -r requirements.txt
 
-      - name: Copy env for tests
-        run: cp task-api/.env .env
+      - name: Create env for tests
+        working-directory: tests-repo
+        run: cp .env.example .env
 
       - name: Run tests
         working-directory: tests-repo
