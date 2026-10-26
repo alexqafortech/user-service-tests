@@ -6,7 +6,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Tests repo
+        uses: actions/checkout@v4
+        with:
+          path: tests-repo
 
       - name: Checkout Task Management API
         uses: actions/checkout@v4
@@ -34,7 +37,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - run: pip install -r requirements.txt
+      - name: Install dependencies
+        working-directory: tests-repo
+        run: pip install -r requirements.txt
 
-      - run: pytest tests/api/ tests/db/ -v
+      - name: Run tests
+        working-directory: tests-repo
+        run: pytest tests/api/ tests/db/ -v
         
