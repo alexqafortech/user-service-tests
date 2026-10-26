@@ -9,7 +9,7 @@ load_dotenv(dotenv_path=BASE_DIR / ".env")
 @dataclass
 class Config:
     BASE_URL: str = os.getenv("BASE_URL")
-    API_TIMEOUT: int = int(os.getenv("API_TIMEOUT"))
+    API_TIMEOUT: int = int(os.getenv("API_TIMEOUT", "5"))
 
     DB_HOST: str = os.getenv("DB_HOST")
     DB_PORT: int = int(os.getenv("DB_PORT"))
