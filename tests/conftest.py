@@ -1,5 +1,6 @@
 import pytest
 import requests
+import time
 import uuid
 import psycopg2
 from src.clients.categories_client import CategoriesClient
