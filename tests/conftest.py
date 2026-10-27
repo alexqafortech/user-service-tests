@@ -27,7 +27,7 @@ def api_session():
 
 @pytest.fixture(scope='session', autouse=True)
 def check_api_available(config):
-    url = f"{config.BASE_URL.rstrip('/')}/health"
+    url = f"{config.API_BASE_URL.rstrip('/')}/health"
     attempts = 20
 
     print(f"\nПроверяем доступность API: {url}")
@@ -72,17 +72,17 @@ def unique_user_data():
 
 @pytest.fixture(scope = "session")
 def auth_client(api_session, config):
-    client_auth = AuthClient(base_url = config.BASE_URL, session = api_session, timeout = config.API_TIMEOUT)
+    client_auth = AuthClient(base_url = config.API_BASE_URL, session = api_session, timeout = config.API_TIMEOUT)
     return client_auth
 
 @pytest.fixture(scope = "session")
 def tasks_client(api_session, config):
-    task = TasksClient(base_url = config.BASE_URL, session = api_session, timeout = config.API_TIMEOUT)
+    task = TasksClient(base_url = config.API_BASE_URL, session = api_session, timeout = config.API_TIMEOUT)
     return task
 
 @pytest.fixture(scope = "session")
 def category(api_session, config):
-    category = CategoriesClient(base_url = config.BASE_URL, session = api_session, timeout = config.API_TIMEOUT)
+    category = CategoriesClient(base_url = config.API_BASE_URL, session = api_session, timeout = config.API_TIMEOUT)
     return category
 
 @pytest.fixture(scope = "session")
@@ -128,11 +128,11 @@ def authed_session(authenticated_user):
 
 @pytest.fixture(scope="function")
 def authed_tasks_client(config, authed_session):
-    return TasksClient(config.BASE_URL, authed_session, config.API_TIMEOUT)
+    return TasksClient(config.API_BASE_URL, authed_session, config.API_TIMEOUT)
 
 @pytest.fixture(scope="function")
 def authed_categories_client(config, authed_session):
-    return CategoriesClient(config.BASE_URL, authed_session, config.API_TIMEOUT)
+    return CategoriesClient(config.API_BASE_URL, authed_session, config.API_TIMEOUT)
 
 @pytest.fixture(scope="session")
 def db_connection(config):

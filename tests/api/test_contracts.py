@@ -27,7 +27,7 @@ def test_login_response_contract(auth_client, unique_user_data):
 
 @pytest.mark.contracts
 def test_health_response_contract(api_session, config):
-    res = api_session.get(f"{config.BASE_URL}/health")
+    res = api_session.get(f"{config.API_BASE_URL}/health")
     health = HealthResponse.model_validate(res.json())
 
 @pytest.mark.contracts

@@ -16,7 +16,7 @@ def test_tasks_with_invalid_token(tasks_client, config):
     session = requests.Session()
     session.headers.update({"Authorization": "Bearer fake_token"})
 
-    tasks_client = TasksClient(config.BASE_URL, session)
+    tasks_client = TasksClient(config.API_BASE_URL, session)
 
     response = tasks_client.get_list()
 
@@ -87,7 +87,7 @@ def test_cannot_access_other_users_task(authed_tasks_client, auth_client, config
 
     second_session = requests.Session()
     second_session.headers.update({"Authorization": f"Bearer {second_token}"})
-    second_user = TasksClient(config.BASE_URL, second_session)
+    second_user = TasksClient(config.API_BASE_URL, second_session)
 
     response = second_user.get_by_id(task_id)
     assert response.status_code in (403, 404)
