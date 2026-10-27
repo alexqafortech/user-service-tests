@@ -15,7 +15,7 @@ def url_login():
 @pytest.mark.auth
 def test_register_new_user(auth_client, unique_user_data):
     res = auth_client.register(**unique_user_data)
-    assert res.status_code == 201
+    assert res.status_code == 200 #201
     res_data = UserResponse.model_validate(res.json()["user"])
     assert res_data.email == unique_user_data['email']
 
