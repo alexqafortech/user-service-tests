@@ -82,5 +82,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: report-${{matrix.python-version}}
-          path: report-${{matrix.python-version}}.xml
+          path: tests-repo/report-${{matrix.python-version}}.xml
         
