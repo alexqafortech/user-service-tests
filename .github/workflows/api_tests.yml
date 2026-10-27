@@ -8,9 +8,16 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    
     env:
       DB_PASSWORD: ${{secrets.DB_PASSWORD}}
       APP_SECRET_KEY: ${{secrets.APP_SECRET_KEY}}
+      
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+        
     steps:
       - name: Run info
         run: |
@@ -58,7 +65,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{matrix.python-version}}
 
       - name: Install dependencies
         working-directory: tests-repo
