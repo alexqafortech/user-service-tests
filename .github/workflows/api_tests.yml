@@ -62,7 +62,7 @@ jobs:
           echo "=== ЛОГИ КОНТЕЙНЕРОВ ==="
           cd task-api && docker compose logs
           exit 1
-# Комментарий для проверки кэширования
+
       - uses: actions/setup-python@v5
         with:
           python-version: ${{matrix.python-version}}
