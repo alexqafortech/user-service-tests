@@ -2,8 +2,22 @@ name: API Tests
 
 on:
   push:
-  workflow_dispatch:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Какие тесты запустить'
+        required: true
+        default: 'api'
+        type: choice
+        options:
+          - api
+          - ui
+          - all
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -73,7 +87,8 @@ jobs:
         working-directory: tests-repo
         run: pip install -r requirements.txt
 
-      - name: Run tests
+      - name: Run API and DB tests
+        if: github.event_name != 'workflow_dispatch' || inputs.test_suite == 'api' || inputs.test_suite == 'all' 
         working-directory: tests-repo
         run: pytest tests/api/ tests/db/ -v --junitxml=report-${{ matrix.python-version }}.xml
 
