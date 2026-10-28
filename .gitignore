@@ -20,3 +20,7 @@ htmlcov/
 .DS_Store
 
 .env
+allure-results/
+allure-report/
+screenshots/
+test-results/

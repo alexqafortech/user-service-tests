@@ -1,7 +1,14 @@
 import pytest
+import allure
 from models.task import TaskResponse, TaskListResponse
 
-
+@allure.title("Создание задачи")
+@allure.epic("Task Management API")
+@allure.feature("Tasks")
+@allure.story("Создание задачи, проверка статус кода ответа, проверка что название задачи совпадает с "
+                "переданным, проверка что статус задач совпадает с ожидаемым")
+@allure.severity(allure.severity_level.CRITICAL)
+@allure.tag("api", "smoke", "regression", "tasks")
 @pytest.mark.tasks
 def test_create_task(authed_tasks_client):
     res_create_task = authed_tasks_client.create("Buy milk")
@@ -10,6 +17,12 @@ def test_create_task(authed_tasks_client):
     assert task.title == "Buy milk"
     assert task.status == "TODO"
 
+@allure.title("Получение существующей задачи по id")
+@allure.epic("Task Management API")
+@allure.feature("Tasks")
+@allure.story("Получение задачи по id, проверка совпадения названия задачи, и статуса задачи")
+@allure.severity(allure.severity_level.CRITICAL)
+@allure.tag("api", "smoke", "regression", "tasks")
 @pytest.mark.tasks
 def test_get_task_by_id(authed_tasks_client):
     res_create_task = authed_tasks_client.create("Buy milk")
