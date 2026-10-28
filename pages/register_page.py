@@ -1,7 +1,8 @@
+import allure
+
 from pages.base_page import BasePage
 from selenium.webdriver.common.by import By
 from components.header import HeaderComponent
-from selenium.webdriver.support.ui import WebDriverWait
 
 class RegisterPage(BasePage):
     PATH = "/register"
@@ -17,9 +18,11 @@ class RegisterPage(BasePage):
         super().__init__(driver, base_url) if base_url else super().__init__(driver)
         self.header = HeaderComponent(driver)
 
+    @allure.step("Открытие страницы Регистрация")
     def open(self):
         return super().open(self.PATH)
 
+    @allure.step("Регистрация пользователя {username}")
     def register(self, username: str, email: str, password: str, age, confirm: str = None):
         if confirm is None:
             confirm = password
@@ -31,16 +34,20 @@ class RegisterPage(BasePage):
         self.type_text(self.AGE_LOCATOR, age)
         self.click(self.SUBMIT_BUTTON_LOCATOR)
 
+    @allure.step("Получение сообщения о успешной регистрации")
     def get_success_message(self):
         return self.get_text(self.REGISTER_MESSAGE_LOCATOR)
 
+    @allure.step("Получение сообщения о ошибке")
     def get_error_message(self):
         return self.get_text(self.REGISTER_MESSAGE_LOCATOR)
 
+    @allure.step("Проверка, что кнопка подтверждения деактивирована")
     def is_submit_disabled(self):
         button = self.find(self.SUBMIT_BUTTON_LOCATOR)
         return button.get_attribute("disabled") is not None
 
+    @allure.step("Получение текста нативной ошибки")
     def native(self):
         element = self.find(self.USERNAME_LOCATOR)
         error_message = self.driver.execute_script("return arguments[0].validationMessage;", element)

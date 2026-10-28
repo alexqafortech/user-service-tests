@@ -1,3 +1,4 @@
+import allure
 from pages.base_page import BasePage
 from components.header import HeaderComponent
 from selenium.webdriver.common.by import By
@@ -19,16 +20,19 @@ class AdminPage(BasePage):
         super().__init__(driver, base_url) if base_url else super().__init__(driver)
         self.header = HeaderComponent(driver)
 
+    @allure.step("Открытие страницы администратора")
     def open(self):
         return super().open(self.PATH)
 
     def reload_page(self):
         self.driver.refresh()
 
+    @allure.step('Нажатие кнопки "Сбросить БД к начальному состоянию"')
     def reload_data_base(self):
         self.click(self.RELOAD_LOCATOR)
         self.alert_accept()
 
+    @allure.step("Активация пользователя {username}")
     def activate_user(self, username="test_hard_pass"):
         locator = (
             By.XPATH,

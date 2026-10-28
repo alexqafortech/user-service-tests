@@ -1,4 +1,5 @@
 import os
+import allure
 import pytest
 import uuid
 import requests
@@ -53,7 +54,21 @@ def pytest_runtest_makereport(item, call):
     """Сохраняет результат каждой фазы теста в атрибут item.rep_<phase>."""
     outcome = yield
     report = outcome.get_result()
-    setattr(item, f"rep_{report.when}", report)
+
+    if report.when == "call" and report.failed:
+        page = item.funcargs.get("page")
+
+        if page is not None:
+            try:
+                screenshot = page.screenshot(full_page=True)
+
+                allure.attach(
+                    screenshot,
+                    name=f"Screenshot - {item.name}",
+                    attachment_type=allure.attachment_type.PNG,
+                )
+            except Exception as e:
+                print(f"Не удалось прикрепить скриншот: {e}")
 
 @pytest.fixture(scope = "session")
 def base_url():
@@ -158,7 +173,7 @@ def playwright_orders_page(page):
 # Selenium
 @pytest.fixture(params=["chrome", "firefox"])
 def driver(request):
-    """Запускает Chrome перед тестом и закрывает после."""
+    """Запускает браузер и прикрепляет скриншот упавшего теста к Allure."""
 
     test_name = request.node.name.replace("[", "_").replace("]", "_")
     video_filename = f"{test_name}.mp4"
@@ -178,15 +193,21 @@ def driver(request):
             "name": request.node.name,
         })
         selenoid_url = request.config.getoption("--selenoid-url")
-        driver = webdriver.Remote(command_executor=selenoid_url, options=options)
+        driver = webdriver.Remote(
+            command_executor=selenoid_url,
+            options=options
+        )
     else:
         if request.config.getoption("--browser-mode") == "headless":
             options.add_argument("--headless")
+
         options.add_argument("--window-size=1920,1080")
 
         if request.param == "chrome":
             options.add_argument("--disable-gpu")
-            options.add_argument("--disable-features=PasswordLeakDetection")
+            options.add_argument(
+                "--disable-features=PasswordLeakDetection"
+            )
             prefs = {
                 "credentials_enable_service": False,
                 "profile.password_manager_enabled": False
@@ -194,6 +215,11 @@ def driver(request):
             options.add_experimental_option("prefs", prefs)
             driver = webdriver.Chrome(options=options)
         else:
+            firefox_binary = os.environ.get("FIREFOX_BINARY")
+
+            if firefox_binary:
+                options.binary_location = firefox_binary
+
             options.add_argument("--width=1920")
             options.add_argument("--height=1080")
             driver = webdriver.Firefox(options=options)

@@ -1,3 +1,5 @@
+import allure
+
 from components.playwright.header import PlaywrightHeader
 from pages.playwright.base_page import PlaywrightBasePage
 from pages.playwright.orders_page import PlaywrightOrdersPage
@@ -15,23 +17,29 @@ class PlaywrightCartPage(PlaywrightBasePage):
         self.discount = page.locator("div[id='cart-content'] > div:last-child > div:nth-child(3) > div:nth-child(2) > span:nth-child(2)")
         self.checkout_button = page.get_by_role("button", name="Оформить заказ")
 
+    @allure.step("Открытие страницы Корзина")
     def open(self):
         self.navigate(PATH)
         return self
 
+    @allure.step("Получение товара")
     def get_cart_item(self):
         return self.cart_item
 
+    @allure.step("Применение промокода")
     def apply_promo(self, code: str):
         self.promo_input.fill(code)
         self.promo_button.click()
 
+    @allure.step("Получение итоговой стоимости")
     def get_total(self):
         return self.total
 
+    @allure.step("Получение значения скидки")
     def get_discount(self):
         return self.discount
 
+    @allure.step("Оформление заказа")
     def checkout(self):
         dialog_step = 1
 

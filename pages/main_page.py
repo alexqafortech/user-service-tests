@@ -1,3 +1,5 @@
+import allure
+
 from pages.base_page import BasePage
 from selenium.webdriver.common.by import By
 from components.header import HeaderComponent
@@ -16,15 +18,19 @@ class MainPage(BasePage):
         super().__init__(driver, base_url) if base_url else super().__init__(driver)
         self.header = HeaderComponent(driver)
 
+    @allure.step("Открытие страницы Главная")
     def open(self):
         return super().open(self.PATH)
 
+    @allure.step("Получение значения Заголовка")
     def get_hero_title(self) -> str:
         return self.get_text(self.HERO_TITLE)
 
+    @allure.step("Нажатие кнопки Купить")
     def click_cta(self):
         self.click(self.CTA_BUTTON)
 
+    @allure.step("Открытие профиля пользователя")
     def open_user_profile(self):
         user_menu = self.find(self.USER_MENU)
 

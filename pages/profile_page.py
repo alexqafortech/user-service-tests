@@ -1,3 +1,5 @@
+import allure
+
 from selenium.webdriver.common.by import By
 from components.header import HeaderComponent
 from pages.base_page import BasePage
@@ -12,8 +14,10 @@ class ProfilePage(BasePage):
         super().__init__(driver, base_url) if base_url else super().__init__(driver)
         self.header = HeaderComponent(driver)
 
+    @allure.step("Открытие страницы Профиль")
     def open(self):
         return super().open(self.PATH)
 
+    @allure.step("Проверка загрузки страницы")
     def is_loaded(self) -> bool:
         return self.is_visible(self.PROFILE_CONTENT)

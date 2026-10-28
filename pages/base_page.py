@@ -1,3 +1,4 @@
+import allure
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -12,10 +13,12 @@ class BasePage:
         self.driver = driver
         self.base_url = base_url
 
+    @allure.step("Открытие страницы")
     def open(self, path: str=""):
         self.driver.get(self.base_url + path)
         return self
 
+    @allure.step("Поиск элемента по локатору")
     def find(self, locator: tuple, timeout=DEFAULT_TIMEOUT):
         try:
             return WebDriverWait(self.driver, timeout).until(
@@ -26,6 +29,7 @@ class BasePage:
                 f"Элемент {locator} не появился за {timeout} секунд"
             )
 
+    @allure.step("Поиск кликабельного элемента по локатору")
     def find_clickable(self, locator: tuple, timeout=DEFAULT_TIMEOUT):
         try:
             return WebDriverWait(self.driver, timeout).until(
@@ -36,13 +40,16 @@ class BasePage:
                 f"Элемент {locator} не стал кликабельным за {timeout} секунд"
             )
 
+    @allure.step("Поиск всех элементов подходящих под локатор")
     def find_all(self, locator: tuple, timeout=DEFAULT_TIMEOUT):
         return WebDriverWait(self.driver, timeout).until(
             EC.presence_of_all_elements_located(locator))
 
+    @allure.step("Нажатие на элемент по локатору")
     def click(self, locator: tuple):
         self.find_clickable(locator).click()
 
+    @allure.step("Печать текста в поле")
     def type_text(self, locator: tuple, text: str):
         element = self.find(locator)
         element.send_keys(Keys.CONTROL + "a")
@@ -50,9 +57,11 @@ class BasePage:
         element.clear()
         element.send_keys(text)
 
+    @allure.step("Получение значения атрибута text элемента")
     def get_text(self, locator: tuple):
         return self.find(locator).text
 
+    @allure.step("Поиск видимого элемента")
     def is_visible(self, locator: tuple, timeout=DEFAULT_TIMEOUT):
         try:
             WebDriverWait(self.driver, timeout).until(
@@ -62,6 +71,7 @@ class BasePage:
         except TimeoutException:
             return False
 
+    @allure.step("Ожидание смены URL, пока url не станет содержать нужное значение")
     def wait_for_url_contains(self, part: str,timeout=DEFAULT_TIMEOUT):
         try:
             WebDriverWait(self.driver, timeout).until(
@@ -72,6 +82,7 @@ class BasePage:
                 f"URL не стал содержать {part} за {timeout} секунд. Текущий URL {self.driver.current_url}"
             )
 
+    @allure.step("Ожидание, пока выполнится условие")
     def wait_until(self, condition, timeout=DEFAULT_TIMEOUT):
         try:
             return WebDriverWait(self.driver, timeout).until(condition)
@@ -80,6 +91,7 @@ class BasePage:
                 f"Условие не выполнилось за {timeout} секунд"
             )
 
+    @allure.step("Подтверждение в окне alert")
     def alert_accept(self):
         try:
             WebDriverWait(self.driver, 10).until(EC.alert_is_present())
@@ -88,6 +100,7 @@ class BasePage:
         except TimeoutException:
             raise TimeoutException(f"Браузерное модальное окно (alert) не появилось за 10 секунд.")
 
+    @allure.step("Перезагрузка страницы")
     def refresh(self):
         self.driver.refresh()
         return self

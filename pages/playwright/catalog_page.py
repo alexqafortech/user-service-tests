@@ -1,3 +1,5 @@
+import allure
+
 from components.playwright.header import PlaywrightHeader
 from pages.playwright.base_page import PlaywrightBasePage
 
@@ -13,10 +15,12 @@ class PlaywrightCatalogPage(PlaywrightBasePage):
         self.cards = page.locator("#products-grid")
         self.product = page.locator("#products-grid > div")
 
+    @allure.step("Открытие страницы Каталог")
     def open(self):
         self.navigate(self.PATH)
         return self
 
+    @allure.step("Добавление товара по названию")
     def add_product_by_name(self, name):
         card = self.product.filter(has_text=name)
         card.get_by_role("button", name="В корзину").click()
