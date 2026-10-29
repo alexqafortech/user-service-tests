@@ -100,6 +100,10 @@ jobs:
         working-directory: tests-repo
         run: pytest tests/api/ tests/db/ -v --alluredir=allure-results
 
+      - name: Generate Allure report
+        if: always()
+        run: allure generate allure-results -o allure-report --clean
+
       - name: Load test report history
         uses: actions/checkout@v4
         if: always()
