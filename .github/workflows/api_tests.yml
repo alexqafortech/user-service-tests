@@ -2,7 +2,9 @@ name: API Tests
 
 on:
   push:
+    branches: [main]
   pull_request:
+    branches: [main]
   workflow_dispatch:
     inputs:
       test_suite:
@@ -87,15 +89,15 @@ jobs:
         working-directory: tests-repo
         run: pip install -r requirements.txt
 
+      - name: Install Allure CLI
+        run: npm install -g allure-commandline
+
       - name: Run API and DB tests
         if: github.event_name != 'workflow_dispatch' || inputs.test_suite == 'api' || inputs.test_suite == 'all' 
         working-directory: tests-repo
-        run: pytest tests/api/ tests/db/ -v --junitxml=report-${{ matrix.python-version }}.xml
+        run: pytest tests/api/ tests/db/ -v --alluredir=allure-results
 
-      - name: Upload test report
+      - name: Generate Allure report
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: report-${{matrix.python-version}}
-          path: tests-repo/report-${{matrix.python-version}}.xml
+        run: allure generate allure-results -o allure-report --clean
         
