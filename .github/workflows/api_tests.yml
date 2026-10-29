@@ -108,11 +108,6 @@ jobs:
         working-directory: tests-repo
         run: pytest tests/api/ tests/db/ -v --alluredir=allure-results
 
-      - name: Generate Allure report
-        if: always()
-        working-directory: tests-repo
-        run: allure generate allure-results -o allure-report --clean
-
       - name: Load test report history
         uses: actions/checkout@v4
         if: always()
@@ -121,22 +116,55 @@ jobs:
           ref: gh-pages
           path: gh-pages
 
-      - name: Build Allure report with history
-        uses: simple-elf/allure-report-action@v1.9
+      # ДОБАВЛЕНО: переносим историю предыдущего отчёта в результаты.
+      - name: Restore Allure history
         if: always()
-        with:
-          allure_results: tests-repo/allure-results
-          allure_report: allure-report
-          allure_history: allure-history
-          gh_pages: gh-pages
-          keep_reports: 20
+        run: |
+          mkdir -p tests-repo/allure-results
+
+          if [ -d gh-pages/history ]; then
+            cp -r gh-pages/history tests-repo/allure-results/
+            echo "История Allure восстановлена."
+          else
+            echo "История предыдущего отчёта отсутствует."
+          fi
+
+      - name: Generate Allure report
+        if: always()
+        run: |
+          if [ -d tests-repo/allure-results ] && \
+             [ "$(find tests-repo/allure-results -type f | wc -l)" -gt 0 ]; then
+            allure generate tests-repo/allure-results \
+              -o allure-report --clean
+          else
+            echo "Нет результатов Allure для генерации отчёта."
+            exit 1
+          fi
+
+      - name: Prepare Allure history
+        if: always() && hashFiles('allure-report/index.html') != ''
+        run: |
+          if [ -d tests-repo/allure-results/history ]; then
+            mkdir -p allure-report/history
+            cp -r tests-repo/allure-results/history/. allure-report/history/
+          fi
 
       - name: Publish to gh-pages
         uses: peaceiris/actions-gh-pages@v4
-        if: always() && !cancelled() && matrix.python-version == '3.12' && hashFiles('allure-report/index.html') != ''
+        if: >-
+          always() &&
+          !cancelled() &&
+          matrix.python-version == '3.12' &&
+          hashFiles('allure-report/index.html') != ''
         with:
-          github_token: ${{secrets.GITHUB_TOKEN}}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
-          publish_dir: allure-history
+          publish_dir: allure-report
+          force_orphan: false
+
+      - name: Stop Task Management API
+        if: always()
+        working-directory: task-api
+        run: docker compose down -v
         
         
