@@ -92,8 +92,16 @@ jobs:
         working-directory: tests-repo
         run: pip install -r requirements.txt
 
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          
       - name: Install Allure CLI
-        run: npm install -g allure-commandline
+        run: |
+          npm install -g allure-commandline
+          allure --version
 
       - name: Run API and DB tests
         if: github.event_name != 'workflow_dispatch' || inputs.test_suite == 'api' || inputs.test_suite == 'all' 
@@ -102,6 +110,7 @@ jobs:
 
       - name: Generate Allure report
         if: always()
+        working-directory: tests-repo
         run: allure generate allure-results -o allure-report --clean
 
       - name: Load test report history
@@ -124,7 +133,7 @@ jobs:
 
       - name: Publish to gh-pages
         uses: peaceiris/actions-gh-pages@v4
-        if: always()
+        if: always() && !cancelled() && matrix.python-version == '3.12' && hashFiles('allure-report/index.html') != ''
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
           publish_branch: gh-pages
