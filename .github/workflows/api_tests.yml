@@ -17,6 +17,9 @@ on:
           - ui
           - all
 
+permissions:
+  contents: write
+  
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
   cancel-in-progress: true
@@ -97,7 +100,29 @@ jobs:
         working-directory: tests-repo
         run: pytest tests/api/ tests/db/ -v --alluredir=allure-results
 
-      - name: Generate Allure report
+      - name: Load test report history
+        uses: actions/checkout@v4
         if: always()
-        run: allure generate allure-results -o allure-report --clean
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Build Allure report with history
+        uses: simple-elf/allure-report-action@v1.9
+        if: always()
+        with:
+          allure-results: allure-results
+          allure-history: allure-history
+          gh-pages: gh-pages
+          keep-reports: 20
+
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        if: always()
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          publish_branch: gh-pages
+          publish_dir: allure-history
+        
         
