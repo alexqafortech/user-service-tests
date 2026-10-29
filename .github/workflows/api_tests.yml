@@ -112,10 +112,11 @@ jobs:
         uses: simple-elf/allure-report-action@v1.9
         if: always()
         with:
-          allure-results: allure-results
-          allure-history: allure-history
-          gh-pages: gh-pages
-          keep-reports: 20
+          allure_results: tests-repo/allure-results
+          allure_report: allure-report
+          allure_history: allure-history
+          gh_pages: gh-pages
+          keep_reports: 20
 
       - name: Publish to gh-pages
         uses: peaceiris/actions-gh-pages@v4
