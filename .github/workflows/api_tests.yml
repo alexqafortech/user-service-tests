@@ -116,14 +116,22 @@ jobs:
           ref: gh-pages
           path: gh-pages
 
-      # ДОБАВЛЕНО: переносим историю предыдущего отчёта в результаты.
+      - name: Load test report history
+        uses: actions/checkout@v4
+        if: ${{ always() && !cancelled() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.python-version == '3.12' }}
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
       - name: Restore Allure history
-        if: always()
+        if: ${{ always() && !cancelled() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.python-version == '3.12' }}
         run: |
           mkdir -p tests-repo/allure-results
 
           if [ -d gh-pages/history ]; then
-            cp -r gh-pages/history tests-repo/allure-results/
+            mkdir -p tests-repo/allure-results/history
+            cp -a gh-pages/history/. tests-repo/allure-results/history/
             echo "История Allure восстановлена."
           else
             echo "История предыдущего отчёта отсутствует."
@@ -133,38 +141,53 @@ jobs:
         if: always()
         run: |
           if [ -d tests-repo/allure-results ] && \
-             [ "$(find tests-repo/allure-results -type f | wc -l)" -gt 0 ]; then
+             find tests-repo/allure-results -type f \
+             ! -path '*/history/*' -print -quit | grep -q .; then
+
+            echo "Генерируем Allure HTML report..."
+
             allure generate tests-repo/allure-results \
-              -o allure-report --clean
+              --clean \
+              -o allure-report
+
+            echo "Allure report успешно сгенерирован."
           else
-            echo "Нет результатов Allure для генерации отчёта."
-            exit 1
+            echo "Нет результатов тестирования для генерации Allure report."
           fi
 
       - name: Prepare Allure history
-        if: always() && hashFiles('allure-report/index.html') != ''
+        if: ${{ always() && hashFiles('allure-report/index.html') != '' }}
         run: |
           if [ -d tests-repo/allure-results/history ]; then
             mkdir -p allure-report/history
-            cp -r tests-repo/allure-results/history/. allure-report/history/
+            cp -a tests-repo/allure-results/history/. allure-report/history/
+            echo "История отчёта подготовлена."
+          else
+            echo "История отсутствует. Это может быть первый запуск."
+          fi
+
+      - name: Check Allure report
+        if: always()
+        run: |
+          if [ -f allure-report/index.html ]; then
+            echo "Allure index.html найден."
+            echo "Содержимое папки allure-report:"
+            find allure-report -maxdepth 2 -type f | head -50
+          else
+            echo "Allure index.html не найден. Публикация невозможна."
           fi
 
       - name: Publish to gh-pages
         uses: peaceiris/actions-gh-pages@v4
-        if: >-
-          always() &&
-          !cancelled() &&
-          matrix.python-version == '3.12' &&
-          hashFiles('allure-report/index.html') != ''
+        if: ${{ always() && !cancelled() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.python-version == '3.12' && hashFiles('allure-report/index.html') != '' }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
-          publish_dir: allure-report
-          force_orphan: false
+          publish_dir: ./allure-report
+          keep_files: false
 
       - name: Stop Task Management API
         if: always()
         working-directory: task-api
         run: docker compose down -v
-        
-        
+      
