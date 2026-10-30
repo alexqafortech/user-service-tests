@@ -26,7 +26,7 @@ def test_register_new_user(auth_client, unique_user_data):
         res = auth_client.register(**unique_user_data)
 
     with allure.step("Проверка статус кода ответа на запрос на регистрацию"):
-        assert res.status_code == 400 #201 Специальная поломка теста, для проверки трендов
+        assert res.status_code == 201
 
     with allure.step("Получение тела ответа"):
         res_data = UserResponse.model_validate(res.json()["user"])
