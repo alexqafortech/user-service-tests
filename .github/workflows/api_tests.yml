@@ -213,6 +213,7 @@ jobs:
             Тесты прошли
             Статус: <b> ${{job.status}} </b>
             Ветка: <code> ${{github.ref_name}} </code>
+            Версия: ${{matrix.python-version}}
 
             <a href="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/">Allure-отчёт</a>
 
@@ -228,5 +229,6 @@ jobs:
             Статус: <b> ${{job.status}} </b>
             Ветка: <code> ${{github.ref_name}} </code>
             Автор: <b> ${{github.actor}} </b>
+            Версия: ${{matrix.python-version}}
 
             <a href="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/">Allure-отчёт</a>
