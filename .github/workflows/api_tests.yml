@@ -201,4 +201,19 @@ jobs:
             https://${{github.repository_owner}}.github.io/${{github.event.repository.name}}/
             Коммит: `${{github.sha}}`
           comment-tag: allure-report
+
+      - name: Telegram notification 
+        if: always()
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{secrets.TELEGRAM_CHAT_ID}}
+          token: $${{secrets.TELEGRAM_BOT_TOKEN}}
+          format: html
+          message: |
+            Прогон тестов завершён
+            Статус: <b> ${{job.status}} </b>
+            Ветка: <code> ${{github.ref_name}} </code>
+            Автор: ${{ github.actor }}
+
+            <a href="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/">Allure-отчёт</a>
       
