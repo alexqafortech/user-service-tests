@@ -1,4 +1,4 @@
-name: API Tests
+name: Full CI Pipeline
 
 on:
   push:
@@ -26,9 +26,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+
+  api-tests:
     runs-on: ubuntu-latest
-    
+    if: github.event_name != 'workflow_dispatch' || inputs.test_suite == 'api' || inputs.test_suite == 'all'
     env:
       DB_PASSWORD: ${{secrets.DB_PASSWORD}}
       APP_SECRET_KEY: ${{secrets.APP_SECRET_KEY}}
@@ -93,46 +94,125 @@ jobs:
         working-directory: tests-repo
         run: pip install -r requirements.txt
 
-      - name: Install Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-          
-      - name: Install Allure CLI
-        run: |
-          npm install -g allure-commandline
-          allure --version
-
       - name: Run API and DB tests
         if: github.event_name != 'workflow_dispatch' || inputs.test_suite == 'api' || inputs.test_suite == 'all' 
         working-directory: tests-repo
         run: pytest tests/api/ tests/db/ -v --alluredir=allure-results
 
+      - name: Stop Task Management API
+        if: always()
+        working-directory: task-api
+        run: docker compose down -v
+
+      - name: Upload API results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-results-api-${{matrix.python-version}}
+          path: tests-repo/allure-results
+  
+  ui-tests:
+    runs-on: ubuntu-latest
+    
+    if: github.event_name != 'workflow_dispatch' || inputs.test_suite == 'ui' || inputs.test_suite == 'all'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          
+      - name: Install dependecies
+        run: pip install -r requirements.txt
+
+      - name: Install Playwright browsers
+        run: playwright install --with-deps chromium
+
+      - name: Start Selenoid
+        run: docker compose -f docker-compose.selenoid.yml up -d
+
+      - name: Wait for Selenoid
+        run: |
+          for i in $(seq 1 10); do
+            if curl -s http://localhost:4444/status | grep -q '"total"'; then
+              echo "Selenoid готов"; exit 0
+            fi
+            echo "Ждём Selenoid... ($i)"; sleep 3
+          done
+          echo "Selenoid не поднялся"; exit 1
+
+      - name: Run UI tests
+        run: pytest tests/ui --remote --selenoid-url http://localhost:4444/wd/hub -v --alluredir=allure-results
+        env:
+          BASE_URL: ${{secrets.BASE_URL}}
+
+      - name: Upload UI results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-results-ui
+          path: allure-results
+
+      - name: Upload videos on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: selenoid-videos
+          path: video
+
+      - name: Stop Selenoid
+        if: always()
+        run: docker compose -f docker-compose.selenoid.yml down
+
+  report:
+    runs-on: ubuntu-latest
+    needs: [api-tests, ui-tests]
+    if: always()
+    
+    steps:
+      - name: Donwload all results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: allure-results-*
+          merge-multiple: true
+          path: allure-results
+
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Allure CLI
+        run: |
+          npm install -g allure-commandline
+          allure --version
+
       - name: Load test report history
         uses: actions/checkout@v4
-        if: ${{ always() && !cancelled() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.python-version == '3.12' }}
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         continue-on-error: true
         with:
           ref: gh-pages
           path: gh-pages
 
+
       - name: Restore Allure history
-        if: ${{ always() && !cancelled() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.python-version == '3.12' }}
+        if: always()
         run: |
-          mkdir -p tests-repo/allure-results
           if [ -d gh-pages/history ]; then
-            mkdir -p tests-repo/allure-results/history
+            mkdir -p allure-results/history
+
             cp -a gh-pages/history/. \
-              tests-repo/allure-results/history/
-            echo "История Allure успешно восстановлена."
-            if [ -f tests-repo/allure-results/history/history-trend.json ]; then
-              echo "Количество предыдущих запусков:"
-              jq 'length' \
-                tests-repo/allure-results/history/history-trend.json
-            else
-              echo "history-trend.json отсутствует."
-            fi
+              allure-results/history/
+
+              echo "История Allure успешно восстановлена."
+
+              if [ -f allure-results/history/history-trend.json ]; then
+                jq 'length' allure-results/history/history-trend.json
+              fi
           else
             echo "История предыдущего отчёта отсутствует."
           fi
@@ -140,29 +220,18 @@ jobs:
       - name: Generate Allure report
         if: always()
         run: |
-          if [ -d tests-repo/allure-results ] && \
-             find tests-repo/allure-results -type f \
-             ! -path '*/history/*' -print -quit | grep -q .; then
+          if [ -d allure-results ] && \
+            find allure-results -type f \
+            ! -path '*/history/*' -print -quit | grep -q .; then
+
             echo "Генерируем Allure HTML report..."
-            allure generate tests-repo/allure-results \
+
+            allure generate allure-results \
               --clean \
               -o allure-report
+
             echo "Allure report успешно сгенерирован."
-            if [ -f allure-report/history/history-trend.json ]; then
-              echo "Количество запусков после генерации:"
-              jq 'length' \
-                allure-report/history/history-trend.json
-              echo "Статистика запусков:"
-              jq 'map({
-                failed: .statistic.failed,
-                broken: .statistic.broken,
-                passed: .statistic.passed,
-                total: .statistic.total
-              })' \
-                allure-report/history/history-trend.json
-            else
-              echo "В отчёте отсутствует history-trend.json!"
-            fi
+
           else
             echo "Нет результатов тестирования для генерации Allure report."
           fi
@@ -180,17 +249,12 @@ jobs:
 
       - name: Publish to gh-pages
         uses: peaceiris/actions-gh-pages@v4
-        if: ${{ always() && !cancelled() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && matrix.python-version == '3.12' && hashFiles('allure-report/index.html') != '' }}
+        if: always() && !cancelled() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && hashFiles('allure-report/index.html') != ''
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: ./allure-report
           keep_files: false
-
-      - name: Stop Task Management API
-        if: always()
-        working-directory: task-api
-        run: docker compose down -v
 
       - name: Comment PR with report link
         if: always() && github.event_name == 'pull_request'
@@ -203,7 +267,7 @@ jobs:
           comment-tag: allure-report
 
       - name: Notify success
-        if: success()
+        if: always() && (needs.api-tests.result == 'success' || needs.api-tests.result == 'skipped') && (needs.ui-tests.result == 'success' || needs.ui-tests.result == 'skipped') && (needs.api-tests.result == 'success' || needs.ui-tests.result == 'success')
         uses: appleboy/telegram-action@master
         with:
           to: ${{secrets.TELEGRAM_CHAT_ID}}
@@ -213,12 +277,13 @@ jobs:
             Тесты прошли
             Статус: <b> ${{job.status}} </b>
             Ветка: <code> ${{github.ref_name}} </code>
-            Версия: ${{matrix.python-version}}
+            API: <b>${{needs.api-tests.result}}</b>
+            UI: <b>${{needs.ui-tests.result}}</b>
 
             <a href="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/">Allure-отчёт</a>
 
       - name: Notify failure
-        if: failure()
+        if: always() && (needs.api-tests.result == 'failure' || needs.ui-tests.result == 'failure')
         uses: appleboy/telegram-action@master
         with:
           to: ${{secrets.TELEGRAM_CHAT_ID}}
@@ -229,6 +294,7 @@ jobs:
             Статус: <b> ${{job.status}} </b>
             Ветка: <code> ${{github.ref_name}} </code>
             Автор: <b> ${{github.actor}} </b>
-            Версия: ${{matrix.python-version}}
+            API: <b>${{needs.api-tests.result}}</b>
+            UI: <b>${{needs.ui-tests.result}}</b>
 
             <a href="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/">Allure-отчёт</a>
