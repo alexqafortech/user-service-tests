@@ -159,13 +159,19 @@ jobs:
       - name: Docker containers status
         if: always()
         run: |
-          docker compose ps -a
+          echo "=== COMPOSE ==="
+          docker compose -f docker-compose.selenoid.yml ps -a
+
+          echo "=== ALL CONTAINERS ==="
+          docker ps -a --no-trunc
+
+          echo "=== RESOURCE USAGE ==="
           docker stats --no-stream
 
-      - name: Application logs
+      - name: Selenoid logs
         if: always()
         run: |
-          docker compose logs --tail=300
+          docker compose -f docker-compose.selenoid.yml logs --tail=300
 
       - name: Upload UI results
         uses: actions/upload-artifact@v4
