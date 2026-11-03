@@ -26,7 +26,20 @@ def api_session():
     session.close()
 
 @pytest.fixture(scope='session', autouse=True)
-def check_api_available(config):
+def check_api_available(request, config):
+    test_paths = [
+        item.path.as_posix()
+        for item in request.session.items
+    ]
+
+    requires_api = any(
+        "/api/" in path or "/db/" in path
+        for path in test_paths
+    )
+
+    if not requires_api:
+        return
+
     url = f"{config.API_BASE_URL.rstrip('/')}/health"
     attempts = 20
 

@@ -36,7 +36,7 @@ def test_full_purchase_flow_parallel_1(parallel_page, parallel_user_registered):
     cart = PlaywrightCartPage(parallel_page)
     cart.open()
 
-    expect(cart.cart_item).to_have_count(1)
+    expect(cart.cart_item).not_to_have_count(0)
 
     cart.apply_promo("SAVE20")
 

@@ -39,7 +39,7 @@ class AdminPage(BasePage):
             f"//td[contains(text(), '{username}')]/following-sibling::td/div/button[contains(text(), 'Активировать')]"
         )
 
-        button = WebDriverWait(self.driver, 5).until(
+        button = WebDriverWait(self.driver, 10).until(
             EC.visibility_of_element_located(locator)
         )
 
@@ -49,7 +49,17 @@ class AdminPage(BasePage):
 
         # На Firefox падает без минимального ожидания
         try:
-            WebDriverWait(self.driver, 0.01).until(EC.alert_is_present())
+            alert = WebDriverWait(self.driver, 0.2).until(
+                EC.alert_is_present()
+            )
+
+            alert_text = alert.text
+            alert.accept()
+
+            raise RuntimeError(
+                f"Ошибка активации пользователя '{username}': "
+                f"{alert_text}"
+            )
         except TimeoutException:
             pass
 
@@ -60,3 +70,7 @@ class AdminPage(BasePage):
             raise RuntimeError(f"Бэкенд вернул ошибку при активации '{username}': {alert_text}")
         except NoAlertPresentException:
             pass
+
+        WebDriverWait(self.driver, 10).until(
+            EC.invisibility_of_element_located(locator)
+        )

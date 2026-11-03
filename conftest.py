@@ -288,7 +288,7 @@ def catalog_page(driver):
 def register_page(driver):
     return RegisterPage(driver)
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def admin_page(driver):
     return AdminPage(driver)
 
