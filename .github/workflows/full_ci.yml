@@ -95,7 +95,6 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run API and DB tests
-        if: github.event_name != 'workflow_dispatch' || inputs.test_suite == 'api' || inputs.test_suite == 'all' 
         working-directory: tests-repo
         run: pytest tests/api/ tests/db/ -v --alluredir=allure-results
 
@@ -113,6 +112,8 @@ jobs:
   
   ui-tests:
     runs-on: ubuntu-latest
+    env:
+          BASE_URL: ${{secrets.BASE_URL}}
     
     if: github.event_name != 'workflow_dispatch' || inputs.test_suite == 'ui' || inputs.test_suite == 'all'
     
@@ -153,9 +154,7 @@ jobs:
           echo "Selenoid не поднялся"; exit 1
 
       - name: Run UI tests
-        run: pytest tests/ui --remote --selenoid-url http://localhost:4444/wd/hub -v --alluredir=allure-results
-        env:
-          BASE_URL: ${{secrets.BASE_URL}}
+        run: pytest tests/ui/ --remote --selenoid-url http://localhost:4444/wd/hub --alluredir=allure-results -v
 
       - name: Upload UI results
         uses: actions/upload-artifact@v4
@@ -184,9 +183,25 @@ jobs:
       - name: Donwload all results
         uses: actions/download-artifact@v4
         with:
-          pattern: allure-results-*
-          merge-multiple: true
-          path: allure-results
+          path: all-results
+
+      - name: Merge results
+        run: |
+          mkdir -p allure-results
+
+          for dir in all-results/allure-results-api-*; do
+            if [ -d "$dir" ]; then
+              cp -a "$dir"/. allure-results/
+            fi
+          done
+
+          if [ -d all-results/allure-results-ui ]; then
+            cp -a all-results/allure-results-ui/. allure-results/
+          fi
+
+          echo "Объединение результатов завершено."
+          echo "Количество файлов:"
+          find allure-results -type f | wc -l
 
       - name: Install Java
         uses: actions/setup-java@v4
@@ -276,7 +291,7 @@ jobs:
           comment-tag: allure-report
 
       - name: Notify success
-        if: always() && (needs.api-tests.result == 'success' || needs.api-tests.result == 'skipped') && (needs.ui-tests.result == 'success' || needs.ui-tests.result == 'skipped') && (needs.api-tests.result == 'success' || needs.ui-tests.result == 'success')
+        if: always() && needs.api-tests.result == 'success' && needs.ui-tests.result == 'success'
         uses: appleboy/telegram-action@master
         with:
           to: ${{secrets.TELEGRAM_CHAT_ID}}
@@ -288,11 +303,12 @@ jobs:
             Ветка: <code> ${{github.ref_name}} </code>
             API: <b>${{needs.api-tests.result}}</b>
             UI: <b>${{needs.ui-tests.result}}</b>
+            Ссылка на прого: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
             <a href="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/">Allure-отчёт</a>
 
       - name: Notify failure
-        if: always() && (needs.api-tests.result == 'failure' || needs.ui-tests.result == 'failure')
+        if: always() && (needs.api-tests.result != 'success' || needs.ui-tests.result != 'success')
         uses: appleboy/telegram-action@master
         with:
           to: ${{secrets.TELEGRAM_CHAT_ID}}
@@ -305,5 +321,6 @@ jobs:
             Автор: <b> ${{github.actor}} </b>
             API: <b>${{needs.api-tests.result}}</b>
             UI: <b>${{needs.ui-tests.result}}</b>
+            Ссылка на прого: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
             <a href="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/">Allure-отчёт</a>
