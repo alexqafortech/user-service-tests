@@ -1,2 +1,0 @@
-
-Тест упал! Видео сохранено в Selenoid под именем: test_block_active_user_chrome_.mp4

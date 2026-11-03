@@ -1,2 +1,0 @@
-
-Тест упал! Видео сохранено в Selenoid под именем: test_promo_codes_firefox-INVALID_CODE-False_.mp4
