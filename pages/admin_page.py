@@ -12,6 +12,8 @@ class AdminPage(BasePage):
     USERS_TABLE = (By.CSS_SELECTOR, "#users-table > div > table > tbody > tr")
     ITEM = (By.XPATH, "//td[contains(., 'test_user')]/following-sibling::td[1]")
     BLOCK_USER = (By.XPATH, "//td[contains(text(), 'ivanov_d')]/following-sibling::td[5]/div/button[contains(text(), 'Заблокировать')]")
+    UNBLOCK_USER = (By.XPATH,
+                  "//td[contains(text(), 'ivanov_d')]/following-sibling::td[5]/div/button[contains(text(), 'Разблокировать')]")
     ACTIVATE_USER = (By.XPATH, "//td[contains(text(), 'test_hard_pass')]/following-sibling::td[5]/div/button[contains(text(), 'Активировать')]")
     TEXT_BLOCK_LOCATOR = (By.XPATH, "//td[contains(text(), 'ivanov_d')]/following-sibling::td[3]")
     RELOAD_LOCATOR = (By.ID, "reset-db-btn")

@@ -18,15 +18,23 @@ def test_block_active_user(admin_page, request):
 
     if current_browser != "chrome":
         pytest.skip("Необходимо только одно выполнение")
-        # Из-за того, что статус пользователя не сбрасывается, при втором выполнении в прогоне тест падает
 
     admin_page.open()
 
+    status = admin_page.get_text(admin_page.TEXT_BLOCK_LOCATOR)
+
+    # Если пользователь заблокирован — сначала разблокируем
+    if status == "Заблокирован":
+        admin_page.click(admin_page.UNBLOCK_USER)
+        admin_page.reload_page()
+
+    # Блокируем активного пользователя
     admin_page.click(admin_page.BLOCK_USER)
     admin_page.alert_accept()
     admin_page.reload_page()
 
-    new_item = admin_page.get_text(admin_page.TEXT_BLOCK_LOCATOR)
+    new_status = admin_page.get_text(admin_page.TEXT_BLOCK_LOCATOR)
 
-    assert new_item == "Заблокирован"
+    assert new_status == "Заблокирован"
+
     admin_page.reload_data_base()

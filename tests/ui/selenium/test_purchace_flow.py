@@ -17,7 +17,7 @@ def test_full_purchase_flow(
 
     cart_items = cart_page.wait_for_items_count(1)
     assert cart_items >= 1
-
+test_full_purchase_flow_chrome_.mp4
     start_summ = cart_page.get_total()
 
     # Промокод
