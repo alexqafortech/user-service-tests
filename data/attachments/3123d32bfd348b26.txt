@@ -1,2 +1,0 @@
-
-Тест упал! Видео сохранено в Selenoid под именем: test_full_purchase_flow_chrome_.mp4
