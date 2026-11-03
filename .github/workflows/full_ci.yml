@@ -303,7 +303,7 @@ jobs:
             Ветка: <code> ${{github.ref_name}} </code>
             API: <b>${{needs.api-tests.result}}</b>
             UI: <b>${{needs.ui-tests.result}}</b>
-            Ссылка на прого: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            Ссылка на прогон: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
             <a href="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/">Allure-отчёт</a>
 
@@ -321,6 +321,6 @@ jobs:
             Автор: <b> ${{github.actor}} </b>
             API: <b>${{needs.api-tests.result}}</b>
             UI: <b>${{needs.ui-tests.result}}</b>
-            Ссылка на прого: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            Ссылка на прогон: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
             <a href="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/">Allure-отчёт</a>
