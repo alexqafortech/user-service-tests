@@ -130,6 +130,14 @@ jobs:
       - name: Install Playwright browsers
         run: playwright install --with-deps chromium
 
+      - name: Pull Selenoid browser images
+        run: |
+          docker pull selenoid/vnc_chrome:128.0
+          docker pull selenoid/vnc_firefox:125.0
+
+      - name: Check Selenoid browser images
+        run: docker images | grep selenoid
+
       - name: Start Selenoid
         run: docker compose -f docker-compose.selenoid.yml up -d
 
