@@ -13,7 +13,7 @@ class CatalogPage(BasePage):
     ADD_TO_CART_BTN = (By.XPATH, ".//button[contains(text(), 'В корзину')]")
     CART_COUNTER = (By.CSS_SELECTOR, "a[href='/cart'] > span")
     IPHONE_ITEM = (By.CSS_SELECTOR, "a[href='/product/1']")
-    FIRST_CARD = (By.CSS_SELECTOR, "#products-grid > div:first-child > a")
+    FIRST_CARD = (By.CSS_SELECTOR, "#products-grid a[href='/product/1'] img")
     PATH = "/catalog"
 
     def __init__(self, driver, base_url = None):

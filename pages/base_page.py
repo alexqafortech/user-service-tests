@@ -47,7 +47,22 @@ class BasePage:
 
     @allure.step("Нажатие на элемент по локатору")
     def click(self, locator: tuple):
-        self.find_clickable(locator).click()
+        element = self.find_clickable(locator)
+
+        self.driver.execute_script(
+            """
+            arguments[0].scrollIntoView({
+                block: 'center',
+                inline: 'center',
+                behavior: 'auto'
+            });
+            """,
+            element
+        )
+
+        element = self.find_clickable(locator)
+
+        element.click()
 
     @allure.step("Печать текста в поле")
     def type_text(self, locator: tuple, text: str):

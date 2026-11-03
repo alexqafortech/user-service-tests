@@ -188,6 +188,7 @@ def driver(request):
         options.set_capability("selenoid:options", {
             "enableVNC": True,
             "enableVideo": True,
+            "enableLog": True,
             "videoName": video_filename,
             "screenResolution": "1920x1080x24",
             "name": request.node.name,
@@ -238,7 +239,10 @@ def driver(request):
         else:
             print(f"\nТест упал! Видео сохранено в Selenoid под именем: {video_filename}")
 
-    driver.quit()
+    try:
+        driver.quit()
+    except Exception as e:
+        print(f"Ошибка закрытия браузера: {e}")
 
     if request.config.getoption("--remote") and not is_failed:
         from urllib.parse import urlparse
@@ -337,7 +341,8 @@ def parallel_user_registered(parallel_user, admin_page):
             "password": parallel_user["password"],
             "passwordConfirm": parallel_user["password"],
             "age": parallel_user["age"],
-        }
+        },
+        timeout = (5, 20)
     )
 
     assert response.status_code == 201, (

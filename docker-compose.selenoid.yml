@@ -1,0 +1,33 @@
+services:
+  selenoid:
+    image: aerokube/selenoid:1.11.3
+    ports:
+      - "4444:4444"
+    volumes:
+      - ./config:/etc/selenoid
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./video:/opt/selenoid/video
+      - ./config:/etc/selenoid:ro
+      - ./logs:/opt/selenoid/logs
+    environment:
+      DOCKER_API_VERSION: "1.45"
+      OVERRIDE_VIDEO_OUTPUT_DIR: "${PWD}/video"
+    command:
+      - "-conf"
+      - "/etc/selenoid/browsers.json"
+      - "-video-output-dir"
+      - "/opt/selenoid/video"
+      - "-container-network"
+      - "${COMPOSE_PROJECT_NAME:-user-service-tests}_default"
+      - "-log-output-dir"
+      - "/opt/selenoid/logs"
+      - "-save-all-logs"
+      - "-disable-privileged"
+
+  selenoid-ui:
+    image: aerokube/selenoid-ui:latest
+    ports:
+      - "8080:8080"
+    depends_on:
+      - selenoid
+    command: ["--selenoid-uri", "http://selenoid:4444"]
