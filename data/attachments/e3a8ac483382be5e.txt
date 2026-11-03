@@ -1,2 +1,0 @@
-
-Тест упал! Видео сохранено в Selenoid под именем: test_promo_codes_chrome-WELCOME10-True_.mp4
