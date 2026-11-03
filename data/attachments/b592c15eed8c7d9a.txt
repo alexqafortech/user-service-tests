@@ -1,2 +1,0 @@
-
-Тест упал! Видео сохранено в Selenoid под именем: test_add_three_products_to_cart_firefox_.mp4

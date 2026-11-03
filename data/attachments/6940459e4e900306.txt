@@ -1,2 +1,0 @@
-
-Тест упал! Видео сохранено в Selenoid под именем: test_add_to_cart_full_chrome-chromium_.mp4
