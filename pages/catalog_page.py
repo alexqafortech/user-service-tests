@@ -39,17 +39,21 @@ class CatalogPage(BasePage):
     @allure.step("Добавление товара {index} в корзину")
     def add_product_to_cart(self, index: int):
         products = self.get_products()
-        time.sleep(0.15)
-        products[index].find_element(*self.ADD_TO_CART_BTN).click()
-        time.sleep(0.15)
+
+        products[index].find_element(
+            *self.ADD_TO_CART_BTN
+        ).click()
+
         self.alert_accept()
 
     @allure.step("Ожидание пока значение счетчика корзины не станет {expected_count}")
     def wait_for_cart_count(self, expected_count: int):
         return self.wait_until(
-            lambda _: self.header.get_cart_count()
-            if self.header.get_cart_count() == expected_count
-            else False
+            lambda _: (
+                count
+                if (count := self.header.get_cart_count()) == expected_count
+                else False
+            )
         )
 
     @allure.step("Получение количества товаров из localStorage")

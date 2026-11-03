@@ -4,7 +4,6 @@ services:
     ports:
       - "4444:4444"
     volumes:
-      - ./config:/etc/selenoid
       - /var/run/docker.sock:/var/run/docker.sock
       - ./video:/opt/selenoid/video
       - ./config:/etc/selenoid:ro
