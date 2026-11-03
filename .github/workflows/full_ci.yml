@@ -134,6 +134,7 @@ jobs:
         run: |
           docker pull selenoid/vnc_chrome:128.0
           docker pull selenoid/vnc_firefox:125.0
+          docker pull selenoid/video-recorder:latest-release
 
       - name: Check Selenoid browser images
         run: docker images | grep selenoid
