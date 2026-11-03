@@ -299,7 +299,7 @@ jobs:
           format: html
           message: |
             Тесты прошли
-            Статус: <b> ${{job.status}} </b>
+            Статус: success
             Ветка: <code> ${{github.ref_name}} </code>
             API: <b>${{needs.api-tests.result}}</b>
             UI: <b>${{needs.ui-tests.result}}</b>
@@ -316,7 +316,7 @@ jobs:
           format: html
           message: |
             ТЕСТЫ УПАЛИ!
-            Статус: <b> ${{job.status}} </b>
+            Статус: failed
             Ветка: <code> ${{github.ref_name}} </code>
             Автор: <b> ${{github.actor}} </b>
             API: <b>${{needs.api-tests.result}}</b>
