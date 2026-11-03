@@ -1,0 +1,2 @@
+
+Тест упал! Видео сохранено в Selenoid под именем: test_clear_localstorage_empties_cart_chrome_.mp4

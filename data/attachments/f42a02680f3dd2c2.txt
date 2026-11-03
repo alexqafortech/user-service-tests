@@ -1,0 +1,2 @@
+
+Тест упал! Видео сохранено в Selenoid под именем: test_add_to_cart_increases_counter_lambda_firefox_.mp4
