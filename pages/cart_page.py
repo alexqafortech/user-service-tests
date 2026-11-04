@@ -9,7 +9,7 @@ from pages.base_page import BasePage, DEFAULT_TIMEOUT
 from components.header import HeaderComponent
 from selenium.webdriver.common.by import By
 from pages.orders_page import OrdersPage
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException, NoSuchElementException
 
 class CartPage(BasePage):
 
@@ -80,31 +80,45 @@ class CartPage(BasePage):
 
     @allure.step("Применение промокода {code} и ожидание изменения итоговой стоимости")
     def apply_promo_and_wait(self, code: str, old_total=None, timeout=5):
-        old_total = self.get_total()
+        if old_total is None:
+            old_total = self.get_total()
 
         self.apply_promo(code)
 
         def result_received(driver):
-            # Проверяем сообщение от приложения
-            messages = driver.find_elements(*self.PROMO_MESSAGE_LOCATOR)
-
-            for message in messages:
-                if message.is_displayed() and message.text.strip():
-                    return message.text.strip()
-
-            # Проверяем изменение итоговой стоимости
             try:
+                # Каждый раз заново ищем сообщение в DOM.
+                messages = driver.find_elements(
+                    *self.PROMO_MESSAGE_LOCATOR
+                )
+
+                for message in messages:
+                    if message.is_displayed():
+                        message_text = message.text.strip()
+
+                        if message_text:
+                            return message_text
+
+            except (StaleElementReferenceException, NoSuchElementException):
+                # DOM обновился — повторяем проверку на следующей итерации.
+                return False
+
+            try:
+                # Если сообщение не появилось, проверяем изменение цены.
                 new_total = self.get_total()
 
                 if new_total != old_total:
                     return "total_changed"
 
-            except Exception:
-                pass
+            except (StaleElementReferenceException, NoSuchElementException):
+                return False
 
             return False
 
-        return self.wait_until(result_received, timeout=timeout)
+        return self.wait_until(
+            result_received,
+            timeout=timeout
+        )
 
     @allure.step("Применение промокода {code}")
     def apply_promo(self, code):
