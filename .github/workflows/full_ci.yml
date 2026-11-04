@@ -156,6 +156,23 @@ jobs:
       - name: Run UI tests
         run: pytest tests/ui/ --remote --selenoid-url http://localhost:4444/wd/hub --alluredir=allure-results -v
 
+      - name: Docker containers status
+        if: always()
+        run: |
+          echo "=== COMPOSE ==="
+          docker compose -f docker-compose.selenoid.yml ps -a
+
+          echo "=== ALL CONTAINERS ==="
+          docker ps -a --no-trunc
+
+          echo "=== RESOURCE USAGE ==="
+          docker stats --no-stream
+
+      - name: Selenoid logs
+        if: always()
+        run: |
+          docker compose -f docker-compose.selenoid.yml logs --tail=300
+
       - name: Upload UI results
         uses: actions/upload-artifact@v4
         if: always()
@@ -299,7 +316,7 @@ jobs:
           format: html
           message: |
             Тесты прошли
-            Статус: <b> ${{job.status}} </b>
+            Статус: success
             Ветка: <code> ${{github.ref_name}} </code>
             API: <b>${{needs.api-tests.result}}</b>
             UI: <b>${{needs.ui-tests.result}}</b>
@@ -316,7 +333,7 @@ jobs:
           format: html
           message: |
             ТЕСТЫ УПАЛИ!
-            Статус: <b> ${{job.status}} </b>
+            Статус: failed
             Ветка: <code> ${{github.ref_name}} </code>
             Автор: <b> ${{github.actor}} </b>
             API: <b>${{needs.api-tests.result}}</b>
