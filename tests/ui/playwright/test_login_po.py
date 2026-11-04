@@ -11,6 +11,7 @@ def login_page(page):
 def test_login_success_po(login_page):
     login_page.open()
     login_page.login("test_user@shopmarket.ru", "Password123")
+    login_page.wait_for_login()
     username_element = login_page.get_username()
     expect(username_element).to_have_text("Алексей Петров")
 

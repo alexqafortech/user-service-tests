@@ -4,6 +4,8 @@ from pages.base_page import BasePage
 from selenium.webdriver.common.by import By
 from components.header import HeaderComponent
 from pages.main_page import MainPage
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 class LoginPage(BasePage):
 
@@ -28,9 +30,13 @@ class LoginPage(BasePage):
         self.type_text(self.EMAIL_INPUT, email)
         self.type_text(self.PASSWORD_INPUT, password)
         self.click(self.SUBMIT_BUTTON)
-        main = MainPage(self.driver)
-        main.wait_for_url_contains("/")
-        return main
+        return MainPage(self.driver)
+
+    def wait_for_login(self, timeout=5):
+        WebDriverWait(self.driver, timeout).until(
+            EC.visibility_of_element_located(MainPage.USER_MENU)
+        )
+        return MainPage(self.driver)
 
     @allure.step("Получение сообщения об ошибке")
     def get_error_message(self) -> str:

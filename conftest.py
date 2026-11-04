@@ -76,12 +76,11 @@ def base_url():
 
 # Playwright
 @pytest.fixture
-def browser_context_args(browser_context_args, storage_state_path_api):
+def browser_context_args(browser_context_args, base_url):
     return {
         **browser_context_args,
-        "base_url": "http://82.146.39.180:3000/",
-        "viewport": {"width": 1920, "height": 1080},
-        "storage_state": storage_state_path_api
+        "base_url": base_url,
+        "viewport": {"width": 1920, "height": 1080}
     }
 
 @pytest.fixture
@@ -137,6 +136,7 @@ def authenticated_page(browser, storage_state_path_api):
     context = browser.new_context(
         base_url = "http://82.146.39.180:3000/",
         storage_state = storage_state_path_api,
+        viewport={"width": 1920, "height": 1080}
     )
     page = context.new_page()
     page.goto("/catalog")

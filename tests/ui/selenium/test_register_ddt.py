@@ -16,16 +16,19 @@ def test_register_validation(register_page, username, email, password, confirm, 
 
 @pytest.mark.cart
 @pytest.mark.parametrize("code, should_discount", PROMO_CODES)
-def test_promo_codes(code, should_discount, catalog_page, cart_page):
+def test_promo_codes(catalog_page, cart_page, code, should_discount):
     catalog_page.open()
-    catalog_page.add_product_to_cart(1)
 
-    cart_count = catalog_page.header.get_cart_count()
-
-    assert cart_count == 1
+    catalog_page.add_product_to_cart_and_wait(1, 1)
 
     cart_page.open()
-    cart_page.apply_promo(code)
-    result = cart_page.is_visible_discount()
-    assert result == should_discount
+
+    cart_page.apply_promo_and_wait(code)
+
+    actual_discount = cart_page.is_visible_discount()
+
+    assert actual_discount == should_discount, (
+        f"Для промокода {code} ожидалось наличие скидки: "
+        f"{should_discount}, получено: {actual_discount}"
+    )
 

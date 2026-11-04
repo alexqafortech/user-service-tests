@@ -2,10 +2,11 @@ import allure
 
 from pages.playwright.base_page import PlaywrightBasePage
 
+
 class PlaywrightLoginPage(PlaywrightBasePage):
     PATH = "/login"
 
-    def __init__(self, page, base_url = None):
+    def __init__(self, page, base_url=None):
         super().__init__(page)
 
         self.email = page.get_by_role("textbox", name="email")
@@ -25,6 +26,11 @@ class PlaywrightLoginPage(PlaywrightBasePage):
         self.email.fill(email)
         self.password.fill(password)
         self.submit.click()
+        return self
+
+    @allure.step("Ожидание успешной авторизации")
+    def wait_for_login(self):
+        self.user_name.wait_for(state="visible")
         return self
 
     @allure.step("Получение ошибки")

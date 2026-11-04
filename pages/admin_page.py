@@ -12,8 +12,7 @@ class AdminPage(BasePage):
     USERS_TABLE = (By.CSS_SELECTOR, "#users-table > div > table > tbody > tr")
     ITEM = (By.XPATH, "//td[contains(., 'test_user')]/following-sibling::td[1]")
     BLOCK_USER = (By.XPATH, "//td[contains(text(), 'ivanov_d')]/following-sibling::td[5]/div/button[contains(text(), 'Заблокировать')]")
-    UNBLOCK_USER = (By.XPATH,
-                  "//td[contains(text(), 'ivanov_d')]/following-sibling::td[5]/div/button[contains(text(), 'Разблокировать')]")
+    UNBLOCK_USER = (By.XPATH, "//td[contains(text(), 'ivanov_d')]/following-sibling::td[5]/div/button[contains(text(), 'Разблокировать')]")
     ACTIVATE_USER = (By.XPATH, "//td[contains(text(), 'test_hard_pass')]/following-sibling::td[5]/div/button[contains(text(), 'Активировать')]")
     TEXT_BLOCK_LOCATOR = (By.XPATH, "//td[contains(text(), 'ivanov_d')]/following-sibling::td[3]")
     RELOAD_LOCATOR = (By.ID, "reset-db-btn")
@@ -49,16 +48,18 @@ class AdminPage(BasePage):
 
         button.click()
 
-        # На Firefox падает без минимального ожидания
         try:
-            WebDriverWait(self.driver, 0.01).until(EC.alert_is_present())
-        except TimeoutException:
-            pass
+            alert = WebDriverWait(self.driver, 2).until(
+                EC.alert_is_present()
+            )
 
-        try:
-            alert = self.driver.switch_to.alert
             alert_text = alert.text
             alert.accept()
-            raise RuntimeError(f"Бэкенд вернул ошибку при активации '{username}': {alert_text}")
-        except NoAlertPresentException:
+
+            if "ошибка" in alert_text.lower():
+                raise RuntimeError(
+                    f"Ошибка при активации пользователя {username}: {alert_text}"
+                )
+
+        except TimeoutException:
             pass

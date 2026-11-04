@@ -1,11 +1,9 @@
+
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
-import time
 
 from pages.base_page import BasePage
+
 
 class HeaderComponent(BasePage):
     LOGO_LOCATOR = (By.XPATH, "//a[contains(text(),'ШопМаркет')]")
@@ -16,18 +14,19 @@ class HeaderComponent(BasePage):
     PROFILE_LOCATOR = (By.CSS_SELECTOR, "a[href='/profile']")
     LOGOUT_LOCATOR = (By.CSS_SELECTOR, "button[onclick='logout()']")
 
-    def get_cart_count(self) -> int:
-        time.sleep(0.15)
+    def read_cart_count(self) -> int:
+        value = self.driver.execute_script("""
+            const badge = document.querySelector("a[href='/cart'] > span");
+            return badge ? badge.textContent.trim() : "0";
+        """)
+
         try:
-            counter_element = WebDriverWait(self.driver, 5).until(
-                EC.presence_of_element_located(self.CART_COUNT_LOCATOR)
-            )
-            text_value = counter_element.get_attribute("textContent").strip()
-            if not text_value:
-                return 0
-            return int(text_value)
-        except (TimeoutException, ValueError):
+            return int(value) if value else 0
+        except (TypeError, ValueError):
             return 0
+
+    def get_cart_count(self, timeout=3) -> int:
+        return self.read_cart_count()
 
     def go_to_catalog(self):
         self.click(self.CATALOG_LOCATOR)
@@ -46,4 +45,3 @@ class HeaderComponent(BasePage):
     def logout(self):
         self.open_user_menu()
         self.click(self.LOGOUT_LOCATOR)
-

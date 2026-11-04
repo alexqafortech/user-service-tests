@@ -43,7 +43,8 @@ def test_each_product_card_complete(catalog_page):
 
     cards = catalog_page.get_products()
 
-    for card_item in cards:
-        card = ProductCard(card_item)
+    for index in range(len(cards)):
+        card = ProductCard(catalog_page.driver, index)
+
         assert card.get_title() != ""
         assert card.get_price() != ""

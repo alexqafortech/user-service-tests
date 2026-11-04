@@ -1,4 +1,5 @@
 import json
+import re
 import allure
 
 from selenium.webdriver.support.wait import WebDriverWait
@@ -15,7 +16,7 @@ class CartPage(BasePage):
     CART_PRODUCTS_LOCATOR = (By.CSS_SELECTOR, "div[id='cart-content'] > div:first-child > div")
     PROMO_INPUT_LOCATOR = (By.ID, "promo-input")
     PROMO_BTN_LOCATOR = (By.CSS_SELECTOR, "button[onclick='applyPromo()']")
-    # Для итоговой суммы нет более конкретного локатора, ждём пока сделают =)
+    PROMO_MESSAGE_LOCATOR = (By.ID, "promo-message")
     DISCOUNT_SUM_LOCATOR = (By.CSS_SELECTOR, "div[id='cart-content'] > div:last-child > div:nth-child(3) > div:nth-child(2) > span:nth-child(2)")
     FINAL_SUM_LOCATOR = (By.CSS_SELECTOR, "div[id='cart-content'] > div:last-child > div > div:last-child > span:last-child")
     PROMO_MARK_LOCATOR = (By.CSS_SELECTOR, "div[id='cart-content'] > div:last-child > div:nth-child(3) > div:nth-child(2)")
@@ -42,10 +43,15 @@ class CartPage(BasePage):
             "return localStorage.getItem('cart_items')"
         )
 
-        if not data or data == "null":
+        if not data:
             return 0
 
-        return len(json.loads(data))
+        cart_items = json.loads(data)
+
+        return sum(
+            int(item.get("quantity", 1))
+            for item in cart_items
+        )
 
     @allure.step("Очистка localStorage")
     def clear_localstorage_cart(self):
@@ -56,7 +62,11 @@ class CartPage(BasePage):
     @allure.step("Ожидание, пока в счетчике корзины не окажется {expected_count}")
     def wait_for_cart_count(self, expected_count: int, timeout=10):
         return self.wait_until(
-            lambda driver: self.header.get_cart_count() == expected_count,
+            lambda _: (
+                count
+                if (count := self.header.get_cart_count()) == expected_count
+                else False
+            ),
             timeout=timeout
         )
 
@@ -69,12 +79,32 @@ class CartPage(BasePage):
         )
 
     @allure.step("Применение промокода {code} и ожидание изменения итоговой стоимости")
-    def apply_promo_and_wait(self, code: str, old_total: str):
+    def apply_promo_and_wait(self, code: str, old_total=None, timeout=5):
+        old_total = self.get_total()
+
         self.apply_promo(code)
 
-        self.wait_until(
-            lambda _: self.get_total() != old_total
-        )
+        def result_received(driver):
+            # Проверяем сообщение от приложения
+            messages = driver.find_elements(*self.PROMO_MESSAGE_LOCATOR)
+
+            for message in messages:
+                if message.is_displayed() and message.text.strip():
+                    return message.text.strip()
+
+            # Проверяем изменение итоговой стоимости
+            try:
+                new_total = self.get_total()
+
+                if new_total != old_total:
+                    return "total_changed"
+
+            except Exception:
+                pass
+
+            return False
+
+        return self.wait_until(result_received, timeout=timeout)
 
     @allure.step("Применение промокода {code}")
     def apply_promo(self, code):
@@ -82,8 +112,14 @@ class CartPage(BasePage):
         self.click(self.PROMO_BTN_LOCATOR)
 
     @allure.step("Получение итоговой стоимости")
-    def get_total(self) -> str:
-        return self.get_text(self.FINAL_SUM_LOCATOR)
+    def get_total(self) -> float:
+        price_text = self.get_text(self.FINAL_SUM_LOCATOR)
+
+        # Убираем валюту, пробелы и прочие символы
+        price = re.sub(r"[^\d,\.]", "", price_text)
+        price = price.replace(",", ".")
+
+        return float(price)
 
     @allure.step("Получение значения скидки")
     def get_discount(self):
@@ -110,10 +146,16 @@ class CartPage(BasePage):
 
     @allure.step("Проверка видимости скидки")
     def is_visible_discount(self, timeout = 3):
-        try:
-            WebDriverWait(self.driver, timeout).until(
-                EC.visibility_of_element_located(self.DISCOUNT_SUM_LOCATOR)
-            )
-            return True
-        except TimeoutException:
-            return False
+        elements = self.driver.find_elements(*self.DISCOUNT_SUM_LOCATOR)
+
+        for element in elements:
+            if not element.is_displayed():
+                continue
+
+            value = re.sub(r"[^\d,\.]", "", element.text)
+            value = value.replace(",", ".")
+
+            if value and float(value) > 0:
+                return True
+
+        return False
