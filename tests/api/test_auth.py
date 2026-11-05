@@ -4,7 +4,7 @@ from tests.conftest import unique_user_data
 from models.auth import TokenResponse, RegisterPayload
 from models.error import ErrorResponse
 from models.user import UserResponse
-
+# Коммент для проверки PR
 @pytest.fixture
 def url_register():
     return "/api/v1/auth/register"
